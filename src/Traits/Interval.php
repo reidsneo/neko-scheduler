@@ -3,7 +3,7 @@
 namespace Neko\Scheduler\Traits;
 
 use DateTime;
-use Cron\CronExpression;
+use Neko\Scheduler\CronExpression;
 use InvalidArgumentException;
 
 trait Interval

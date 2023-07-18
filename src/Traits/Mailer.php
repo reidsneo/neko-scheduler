@@ -1,6 +1,7 @@
 <?php
 
 namespace Neko\Scheduler\Traits;
+use Neko\Mail\Email;
 
 trait Mailer
 {
@@ -11,29 +12,22 @@ trait Mailer
      */
     public function getEmailConfig()
     {
-        if (! isset($this->emailConfig['subject']) ||
-            ! is_string($this->emailConfig['subject'])
+        if (! isset($this->emailTo['subject']) ||
+            ! is_string($this->emailTo['subject'])
         ) {
-            $this->emailConfig['subject'] = 'Cronjob execution';
+            $this->emailTo['subject'] = 'Cronjob execution';
         }
 
-        if (! isset($this->emailConfig['from'])) {
-            $this->emailConfig['from'] = ['cronjob@server.my' => 'My Email Server'];
+        if (! isset($this->emailTo['from'])) {
+            $this->emailTo['from'] = ['cronjob@server.my' => 'My Email Server'];
         }
 
-        if (! isset($this->emailConfig['body']) ||
-            ! is_string($this->emailConfig['body'])
+        if (! isset($this->emailTo['body']) ||
+            ! is_string($this->emailTo['body'])
         ) {
-            $this->emailConfig['body'] = 'Cronjob output attached';
+            $this->emailTo['body'] = 'Cronjob output attached';
         }
-
-        if (! isset($this->emailConfig['transport']) ||
-            ! ($this->emailConfig['transport'] instanceof \Swift_Transport)
-        ) {
-            $this->emailConfig['transport'] = new \Swift_SendmailTransport();
-        }
-
-        return $this->emailConfig;
+        return $this->emailTo;
     }
 
     /**
@@ -44,21 +38,18 @@ trait Mailer
      */
     private function sendToEmails(array $files)
     {
+        global $app;
         $config = $this->getEmailConfig();
-
-        $mailer = new \Swift_Mailer($config['transport']);
-
-        $message = (new \Swift_Message())
-            ->setSubject($config['subject'])
-            ->setFrom($config['from'])
-            ->setTo($this->emailTo)
-            ->setBody($config['body'])
-            ->addPart('<q>Cronjob output attached</q>', 'text/html');
-
-        foreach ($files as $filename) {
-            $message->attach(\Swift_Attachment::fromPath($filename));
+        if(count($config)>0)
+        {            
+            $mailer = new Email();
+            $mailer->setAdapter($app->config['email']);
+            if($config['attach_output']==true){
+                $mailer->send($config['from'],$config['to'],$config['subject'],$config['body']);
+            }else{
+                //fixme
+                $mailer->send($config['from'],$config['to'],$config['subject'],$config['body'],$files);
+            }
         }
-
-        $mailer->send($message);
     }
 }

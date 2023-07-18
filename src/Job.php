@@ -448,14 +448,14 @@ class Job
         }
 
         $outputBuffer = ob_get_clean();
-
+        $app = app();
         foreach ($this->outputTo as $filename) {
             if ($outputBuffer) {
-                file_put_contents($filename, $outputBuffer, $this->outputMode === 'a' ? FILE_APPEND : 0);
+                file_put_contents($app->app_path."storage/logs/scheduler_".$filename, $outputBuffer, $this->outputMode === 'a' ? FILE_APPEND : 0);
             }
 
             if ($returnData) {
-                file_put_contents($filename, $returnData, FILE_APPEND);
+                file_put_contents($app->app_path."storage/logs/scheduler_".$filename, $returnData, FILE_APPEND);
             }
         }
 
